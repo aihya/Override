@@ -1,45 +1,51 @@
 #include <stdio.h>
 
-char	a_user_name[0x100];
+char	a_user_name[96]; // 0x804a040
 
-void	verify_user_name()
+int	verify_user_name()
 {
 	puts("verifying username....\n");
-
 	return (strncmp(a_user_name, "dat_wil", 0x7));
 }
 
-void	verify_user_pass(char *main_buffer)
+int verify_user_pass(buffer)
 {
-	return (strncmp(main_buffer, "admin", 0x5));
+	return (strncmp(buffer, "admin", 0x5));
 }
 
 int main()
 {
-	char	buffer[64];	// esp + 0x1c
-	int		diff;		// esp + 0x5c
+	int val;         // esp+0x5c
+	char buffer[64]; // esp+0x1c
 
 	bzero(buffer, 0x10);
-	diff = 0;
 
+	val = 0x0;
 	puts("********* ADMIN LOGIN PROMPT *********");
-	printf("Enter Username: ");
 
+	printf("Enter Username: ");
 	fgets(a_user_name, 0x100, stdin);
-	diff = verify_user_name();
-	if (diff != 0x0)
+
+	val = verify_user_name();
+	
+	if (val == 0x0)
+	{
+		puts("Enter password: ");
+		fgets(buffer, 0x64, stdin);
+		
+		val = verify_user_pass(buffer);
+		
+		if (val == 0x0)
+		{
+			puts("nope, incorrect password...\n");
+			return (0x1);
+		}
+		else if (val == 0x0)
+			return (0);
+	}
+	else
 	{
 		puts("nope, incorrect username...\n");
-		return (1);
-	}
-
-	puts("Enter Password: ");
-	fgets(buffer, 0x64, stdin);
-
-	diff = verify_user_pass(buffer);
-	if (diff != 0x0)
-	{
-		puts("nope, incorrect password...\n");
 		return (1);
 	}
 

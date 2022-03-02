@@ -1,0 +1,9 @@
+1.	Content:
+	The only user-defined function is 'main', inside of it there's scanf(3) 
+	which reads a decimal number and put it in a variable.
+	Then the value of the variable is compared with 0x149c (5276 in decimal)
+	and a system("/bin/sh") is called to spawn a shell if they are equal.
+
+2.	Solution:
+	Nothing fancy, we only need to pass the same value to make the statement 
+	inside the if condition to be true.

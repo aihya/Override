@@ -16,7 +16,7 @@ int verify_user_pass(buffer)
 int main()
 {
 	int val;         // esp+0x5c
-	char buffer[64]; // esp+0x1c
+	char buffer[0x40]; // esp+0x1c
 
 	bzero(buffer, 0x10);
 

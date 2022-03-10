@@ -2,30 +2,30 @@
 
 //               rbp-0x118       rbp-0x120         rbp-0x128
 //               rdi             rsi               rdx
-void log_wrapper(FILE backup_fd, char *somestring, char *filename)
+void log_wrapper(FILE *dst_fd, char *header, char *filename)
 {
 	char	buffer[0x110];	// rbp-0x110
 
-	strcpy(buffer, somestring);
+	strcpy(buffer, header);
 	snprintf(buffer + strlen(buffer), 0xfe - strlen(buffer), filename);
 	buffer[strcspn(buffer, "\n")] = 0x0;
-	fprintf(backup_fd, "LOG: %s\n", buffer);
+	fprintf(dst_fd, "LOG: %s\n", buffer);
 }
 
 void main(int argc, char *argv[])
 {
 	char	buffer[0x30];	// rbp-0x70
 	char	c;				// rbp-0x71
-	int		dst_fd			// rbp-0x78
-	FILE	src_fd;			// rbp-0x80
-	FILE	log_fd;			// rbp-0x88
+	int		dst_fd;			// rbp-0x78
+	FILE	*src_fd;		// rbp-0x80
+	FILE	*log_fd;		// rbp-0x88
 	int		args_count;		// rbp-0x94
 	char	**args;			// rbp-0xa0
 	int		counter;		// rbp-0xa8
 
 	// These two lines are sus, they might not be invoked explicitly.
 	args_count = argc;
-	args = args;
+	args = argv;
 
 	if (args_count != 2) 
 		printf("Usage: %s filename\n", args[0]);

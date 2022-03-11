@@ -2,8 +2,9 @@
 
 typedef struct	s_msg_struct
 {
-	int		var;
-	char	msg[0xb4];
+	int		message_size;
+	char	message[0x8c];
+	char	username[0x28];
 }				t_msg_struct;
 
 void secret_backdoor()
@@ -23,7 +24,7 @@ void set_msg(t_msg_struct* message)
 	printf(">>: ");
 
 	fgets(msg, 0x400, stdin);
-	strncpy(message->msg, msg, message->var);
+	strncpy(message->message, msg, message->message_size);
 }
 
 void set_username(t_msg_struct *message)
@@ -40,11 +41,11 @@ void set_username(t_msg_struct *message)
 	count = 0;
 	while (count <= 0x28 && username[count])
 	{
-		message->msg[count + 0x8c] = username[count];
+		message->username[count] = username[count];
 		count++;
 	}
 
-	printf(">: Welcome, %s", message->msg + 0x8c);
+	printf(">: Welcome, %s", message->username);
 }
 
 
@@ -52,8 +53,8 @@ void handle_msg()
 {
 	t_msg_struct msg_struct;
 
-	bzero(msg_struct.msg + 0x8c, 0x28);
-	msg_struct.var = 0x8c;
+	bzero(msg_struct.username, 0x28);
+	msg_struct.message_size = 0x8c;
 	set_username(&msg_struct);
 	set_msg(&msg_struct);
 	puts(">: Msg sent!");

@@ -62,5 +62,5 @@ void main(int argc, char *argv[])
 	log_wrapper(log_fd, "Finished back up ", args[1]);
 
 	fclose(src_fd);
-	close(dst_fd);
+	fclose(dst_fd);
 }

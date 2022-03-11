@@ -1,0 +1,48 @@
+1.	Program type:
+	Running the command `file ./level06` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level06, we see that the stack is 
+	not executable (NX enabled) and there is a stack canary (Canary found).
+
+2.	Content:
+    In the main, after some calls to `puts` to creat some kind of graphical header
+    a call to `fgets` fills a buffer with 0x20 byte, thats our "login name".
+
+    After other calls to `puts` and `prinf` we get a call to `scanf`, it read an
+    unsigned int using the format string "%u" an puts it in a variable in the
+    stack, thats our "serial number".
+
+    After that the login name and serial number are passed to the function `auth`
+
+    The function `auth` begins by putting a null byte `0x0` in the position
+    containing '\n' in the login name's buffer, then checks the lenghts of
+    the string passed using `strnlen` if the string lenght is inferior to `0x5` it
+    returns `0x1`.
+
+    Then we got a call to `ptrace` with the arguments
+    `ptrace(PTRACE_TRACEME, 0x1, NULL, NULL)`, in this case it will prevent gdb
+    from continuing its normal execution since a call of `ptrace` with the argument
+    "PTRACE_TRACEME" will return -1, since gdb cannot send signals to this process
+    because it's a set-user-ID or at least that's what we found :p.
+    if the ptrace returns -1 auth will return `0x1`.
+
+    Then after that some kind of hash is applied to the login buffer, we didn't
+    understand most of the stuff happening there (i mean it's a hash, are we
+    supposed to know ?) but what we noticed is that if the buffer contain's
+    characters inferior to '0x1f', it will return `0x1` so we will stick with
+    simple printable characters, nothing fancy.
+
+    After the hash of the logins buffer, the result of it is compared to the serial
+    passed to the function, if it's equal the function will return `0x0` otherwhise
+    it will return `0x1`.
+
+    Back the main now, we got a comparison between the return of the auth function
+    and 0x0, then a call to `system("/bin/sh")` if that comparison is truthy.
+
+3.  Solution:
+    Well, this one is pretty easy we just got to bypass the ptrace check using
+    `jump` in gdb.
+
+    Then follow the execution of the hashing of the login passed, then we inspect the value
+    compared to the serial, obviously we should evaluate it as an unsigned int since that
+    how the serial is evaluated in our call of `scanf`.

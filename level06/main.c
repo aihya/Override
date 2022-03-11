@@ -10,7 +10,7 @@ int auth(char *login, unsigned int serial)
 	login_len = strnlen(login, 0x20);
 	// security check
 
-	if(login_len >= 0x5)
+	if(login_len <= 0x5)
 		return (0x1);
 
 	if(ptrace(PTRACE_TRACEME, 0x1, NULL, NULL) == -1)
@@ -27,9 +27,9 @@ int auth(char *login, unsigned int serial)
 	{
 		if (login[counter] <= 0x1f)
 			return (0x1);
-		login_hash += ((login[conter]  ^ login_hash)
-			- (((login_hash - ((login[conter]  ^ login_hash) * 0x88233b2b)) << 1)
-			+ ((login[conter]  ^ login_hash) * 0x88233b2b)) << 0xa) * 0x539;
+		login_hash += ((login[counter]  ^ login_hash)
+			- (((login_hash - ((login[counter]  ^ login_hash) * 0x88233b2b)) << 1)
+			+ ((login[counter]  ^ login_hash) * 0x88233b2b)) << 0xa) * 0x539;
 		counter++;
 	}
 	if(serial == login_hash)
@@ -63,5 +63,5 @@ int main(int argc, char **argv)
 		return (0x0);
 	}
 	// stack corruption check
-	return (0x1)
+	return (0x1);
 }

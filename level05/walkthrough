@@ -1,0 +1,21 @@
+1.	Program type:
+	Running the command `file ./level05` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level05, we see that the stack is
+	executable (NX disabled) and there is not stack canary (No canary found).
+
+2.	Content:
+	We have a call to fgets that fill a buffer of size 0x64 bytes with exactly
+	0x64 bytes from stdin, and an initialization of a variable (var) to 0x0.
+
+	A while loop iterates over the buffer and as long as var is less than the 
+	length of the buffer's content, it lower case what can be lowercased.
+
+	And then calls printf on the buffer directly and exit with 0x0.
+
+3.	Solution:
+	As the while loop lower case the content of the buffer, it prevents us from
+	executing any shellcode that contains bytes which values range between 0x40
+	and 0x5a. So to overcome this problem, we will put the shell in an 
+	environment variable or as an argument for the binary, and fill the buffer
+	with the right format string to change the exit address in GOT.

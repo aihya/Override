@@ -1,0 +1,62 @@
+1.	Program type:
+	Running the command `file ./level07` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level07, we see that the stack is
+	not executable (NX disabled) and there is a stack canary (Canary found).
+
+2.	Content:
+	Two while loops are used in main to reset the argv and envp to 0x0.
+
+	The third one is an infinite while loop, inside it fgets is asking for an
+	input that'll be put in a structure field command_info.command_name with a 
+	trailing null character.
+
+	The command name is compared with the strings "store", "read" and "quit"
+	and calls their corresponding functions and store the execution status in 
+	the structure field command_info.command_index, the exception is "quit"
+	where it there's a return(0x0). After that, the execution status stored
+	in command_info.command_index if checked and printf is called with the 
+	string " Failed to do %s command\n" if the functions fail or the string
+	" Completed %s command successfully\n" otherwise, and at the end of each 
+	cycle command_info.command_name is reset to 0x0.
+
+	The function 'store_number' takes a pointer over an array of integers as 
+	argument. The function 'get_unum' is called twice to read a number and its
+	index where it should be stored, then probably check if the index is 
+	divisible by 3 and the number shifted to the right 18 times doesn't equal
+	0xb7. If so, an error message is printed and 0x1 is returned, otherwise the
+	index is used with the array to store the number and 0x0 is returned.
+
+	The function 'read_number' takes the same array of integers as argument
+	and prints the content of a "slot" in the array using the index read with
+	get_unum.
+
+3.	Solution:
+	One way we can solve this level is by using a return2libc all by 
+	manupilating the index in the 'store_number' function.
+
+	The index is checked whether it's divisible by 3, so we can't put some 
+	value anywhere we want, and especially in the saved-eip considering that
+	the index of it is 114 and it's divisible by 3.
+
+	This is the bit representation of the number 114:
+
+		00000000 00000000 00000000 01110010
+
+	if we multiply it by 4 we get the number 456 (because the indexing is done
+	4 bytes by 4 bytes):
+
+		00000000 00000000 00000001 11001000
+
+	and this is the number of bytes between index 0 of the numbers array and 
+	the position of the saved-eip.
+
+	So we need to have a number with 1 or two bits in the left-most bits
+	of the number 114 so that when its shifted we get the number 456, like
+	this:
+
+		10000000 00000000 00000000 01110010
+
+	Now we need to figure out where system function is located along with
+	the string "/bin/sh", and store their addresses in the saved-eip and the
+	address that comes after it correspondingly.

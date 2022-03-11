@@ -1,0 +1,33 @@
+1.	Program type:
+	Running the command `file ./level01` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level01, we see that the stack is
+	executable (NX disabled).
+
+2.	Content:
+	The main function uses fgets to read from stdin 0x100 bytes and put it into
+	a global variable a_user_name, call the functin 'verify_user_name' and 
+	check its return value if it equals 0x0. If so, it uses fgets to read 0x64 
+	bytes from stdin and put it into main's internal buffer(0x40 bytes), calls
+	'verify_user_pass' with buffer as argument and compare its return value
+	with 0x0, if they are equal prints "nope, incorrect password...\n" and 
+	return 0x1, otherwise compared it again with 0x0 (for some reason) and 
+	return 0x0. otherwise puts the string "nope, incorrect username...\n" and 
+	return 0x1.
+
+	verify_user_name puts the string "verifying username....\n" and strncmp
+	the global variable a_user_name with the string "dat_wil", and return the
+	comparison value.
+
+	verify_user_pass returns the result of strncmp of main's buffer and the
+	string "admin".
+
+3.	Solution:
+	First, the problem is that the second fgets writes more then it should into
+	the main's buffer (a difference of 36 bytes), so it's going to be a simple
+	buffer overflow.
+
+	There's no system function call or an exec so we'll write the shellcode
+	in the global variable and redirect the saved-eip of the main to it.
+
+	That's it.

@@ -1,0 +1,36 @@
+1.	Program type:
+	Running the command `file ./level04` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level04, we see that the stack is
+	executable (NX disabled) and there is not stack canary (No canary found).
+
+2.	Content:
+	The main uses the function fork to create a child and both of them reset an
+	internal buffer to 0.
+
+	The parent has an infinite while loop, within it there's a call to the 
+	function wait in order to get status of the child. 
+
+	If the child dies, the while loop breaks and program stops, otherwise
+	ptrace is called with the macro PTRACE_PEEKUSER to get the syscalls made by
+	the child. If the child didn't call any function from exec family the while
+	loop continues or it prints the message "No exec...\n" and send the SIGKILL
+	signal to the child.
+
+	For the child, there's a call to prctl with the macro PR_SET_PDEATHSIG and
+	SIGHUP signal as arguments so that when the parent dies the child also
+	dies.
+
+	ptrace with PTRACE_TRACEME macro as argument will shift the tracing from
+	kernel to parent process. And finally puts the string
+	"Give me some shellcode, k\n" and gets will fill the internal buffer.
+
+3.	Solution:
+	To solve this level we will do a return2libc exploit.
+
+	The reason being that we can't do something like a buffer overflow because
+	the parent traces the child for any syscall it makes and specifically
+	for exec-family syscalls, so even if override the saved-eip to point to 
+	the shellcode we injecit, it won't work.
+
+

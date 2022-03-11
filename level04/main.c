@@ -21,7 +21,9 @@ int main()
 				break ;
 			else if (status < 0)
 			{
-				ptrace_status = ptrace(0x3, pid, 0x2c, 0x0);
+				// Used to read the child's USER area, which holds the 
+				// informations about registers and other things.
+				ptrace_status = ptrace(PTRACE_PEEKUSER, pid, 0x2c, 0x0);
 				if (ptrace_status != 0xb)
 					continue ;
 				puts("No exec...\n");
@@ -32,14 +34,15 @@ int main()
 	}
 	else // Child
 	{
-		// Causes the child to recieve a SIGHUP signal when the parent is terminated.
+		// Causes the child to recieve a SIGHUP signal when the parent is
+		// terminated.
 		prctl(PR_SET_PDEATHSIG, 0x1);
 
 		// Binds the child and the parent
 		// (Only if the child was terminated before the parent).
 		ptrace(PTRACE_TRACEME, 0, NULL, NULL);
 
-		puts("Give me blabla...\n");
+		puts("Give me some shellcode, k");
 		gets(buf);
 	}
 	return (0);

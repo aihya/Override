@@ -56,7 +56,7 @@ void main(int argc, char *argv[])
 		exit(0x1);
 	}
 
-	while ((c = fgetc(src_fd)) != 0xff)
+	while ((c = fgetc(src_fd)) != EOF)
 		write(dst_fd, c, 0x1);
 
 	log_wrapper(log_fd, "Finished back up ", args[1]);

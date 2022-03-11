@@ -13,7 +13,7 @@ int main()
 	bzero(buffer3, 0xc);
 
 	fileptr = NULL;
-	int_var = 0x0;
+	read_count = 0x0;
 
 	fileptr = fopen("/home/users/level03/.pass", "r");
 	if (fileptr == NULL)

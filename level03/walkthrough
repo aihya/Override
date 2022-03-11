@@ -1,0 +1,48 @@
+1.	Program type:
+	Running the command `file ./level03` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level03, we see that the stack is 
+	not executable (NX enabled) and there is a stack canary (Canary found).
+
+2.	Content:
+	In the main, we have a call to srand and time to seed the rand function 
+	used in later.
+
+	scanf reads an integer with the format string "%d" and put it in a variable
+	in main's stack frame, then a call to a function 'test' with two arguments,
+	var and the value 0x1337d00d.
+
+	'test' calculates the difference between the two arguments and store it in 
+	an internal variable (let's call it diff).
+
+	If the difference is less than 0x15, a switch-case is used with different
+	values and in each one of them we find a call to a function 'decrypt' with
+	the variable diff as argument. If diff is greater or equal to 0x15, a call
+	to 'decrypt' is made with a random number using the function rand.
+
+	'decrypt' seems to do some ROT sorcery and call system("/bin/sh") if 
+	there's a match between the a buffer (which contains the decrypted value) 
+	and the string "Congratulations!", otherwise puts the string 
+	"\nInvalid Password".
+
+3.	Solution:
+	As long as there's too many compared values in the switch statement, we 
+	will just do a bruteforce on the input value between 1 and 0x15
+	(by the way, we dont know the actual compared values, they are just put 
+	there for easthetic purposes, the exception is 18 which is the right 
+	value).
+
+	So we just need to loop from 1 to 0x15 and run the binary in every 
+	iteration giving it the argument (0x1337d00d - [1...0x15]).
+
+	0x1337d00d - 1 = 0x1337d00c
+	0x1337d00d - 2 = 0x1337d00b
+	.
+	.
+	.
+	0x1337d00d - 18 = 0x1337cffb  ->  322424827
+
+	Every iteration will print the message "Invalid Password" except for the
+	the iteration 18. Now we use the value corresponding to it directly to 
+	the binary and a shell will pop up.
+

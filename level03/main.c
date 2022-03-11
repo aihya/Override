@@ -25,7 +25,7 @@ void decrypt(int diff)
 
 void test(int var, int something)
 {
-	int diff = var - something;
+	int diff = something - var;
 
 	if (diff < 0x15)
 	{
@@ -64,7 +64,7 @@ void test(int var, int something)
 			case 10:
 				decrypt(diff);
 				break;
-			case 11:
+			case 18: // <--
 				decrypt(diff);
 				break;
 			case 12:

